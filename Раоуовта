@@ -1,0 +1,67 @@
+#include <iostream>
+#include <vector>
+#include <cmath>
+
+int main() {
+    int n = 31; // Размер поля (нечетный для центральной точки)
+    int centerY = n / 2;
+    int centerX = n / 2;
+
+    // Символы по возрастанию плотности
+    std::string ramp = " .:-=+*#%@";
+    int numLevels = ramp.length() - 1;
+
+    // Вектор векторов для хранения рисунка
+    std::vector<std::vector<int>> matrix(n, std::vector<int>(n));
+
+    // Максимально возможное расстояние для нормализации
+    double maxDist = std::sqrt(centerX * centerX + centerY * centerY);
+
+    // Заполнение матрицы и расчет значений (сложный узор)
+    for (int y = 0; y < n; ++y) {
+        for (int x = 0; x < n; ++x) {
+            double dy = y - centerY;
+            double dx = x - centerX;
+
+            // Расстояние от центра
+            double dist = std::sqrt(dx * dx + dy * dy);
+
+            // "Волновой" узор, зависящий от расстояния
+            // Уменьшаем амплитуду от центра к краям (затухание)
+            double waveFactor = (1.0 - (dist / maxDist)) * std::sin(dist * 0.8 - 0.5);
+
+            // Плотность в центре выше
+            double centerBias = 1.0 - (dist / maxDist);
+
+            // Комбинируем факторы и масштабируем до 0..1
+            double intensity = (waveFactor + centerBias) * 0.8;
+            if (intensity < 0) intensity = 0;
+            if (intensity > 1) intensity = 1;
+
+            // Преобразование интенсивности в индекс символа
+            matrix[y][x] = static_cast<int>(intensity * numLevels);
+        }
+    }
+
+    // Вывод "цифровой" матрицы
+    std::cout << "--- Digital Data ---" << std::endl;
+    for (int y = 0; y < n; ++y) {
+        for (int x = 0; x < n; ++x) {
+            std::cout << matrix[y][x];
+            if (x < n - 1) std::cout << " ";
+        }
+        std::cout << std::endl;
+    }
+
+    // Вывод символьного "интересного" рисунка
+    std::cout << "\n--- ASCII Art: 'Deep Star' ---" << std::endl;
+    for (int y = 0; y < n; ++y) {
+        for (int x = 0; x < n; ++x) {
+            // Рисуем два символа на клетку для сохранения пропорций
+            std::cout << ramp[matrix[y][x]] << ramp[matrix[y][x]];
+        }
+        std::cout << std::endl;
+    }
+
+    return 0;
+}
