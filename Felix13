@@ -1,0 +1,93 @@
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <unordered_map>
+#include <functional>
+
+// Прототипы функций для команд
+void cmdHelp(const std::vector<std::string>& args);
+void cmdHello(const std::vector<std::string>& args);
+void cmdCalc(const std::vector<std::string>& args);
+void cmdExit(const std::vector<std::string>& args);
+
+using CommandHandler = std::function<void(const std::vector<std::string>&)>;
+
+// Словарь команд
+const std::unordered_map<std::string, CommandHandler> COMMANDS = {
+    {"help", cmdHelp},
+    {"hello", cmdHello},
+    {"calc", cmdCalc},
+    {"exit", cmdExit}
+};
+
+void cmdHelp(const std::vector<std::string>& args) {
+    std::cout << "Доступные команды:\n";
+    std::cout << "  hello [имя]           - Поприветствовать пользователя\n";
+    std::cout << "  calc <число> <число>  - Сложить два числа\n";
+    std::cout << "  exit                  - Выйти из приложения\n";
+    std::cout << "  help                  - Показать эту справку\n";
+}
+
+void cmdHello(const std::vector<std::string>& args) {
+    std::string name = (args.empty()) ? "Мир" : args[0];
+    std::cout << "Привет, " << name << "!\n";
+}
+
+void cmdCalc(const std::vector<std::string>& args) {
+    if (args.size() < 2) {
+        std::cout << "Ошибка: укажите два числа. Пример: calc 5 10\n";
+        return;
+    }
+    try {
+        double a = std::stod(args[0]);
+        double b = std::stod(args[1]);
+        std::cout << "Результат: " << (a + b) << "\n";
+    } catch (...) {
+        std::cout << "Ошибка: аргументы должны быть числами.\n";
+    }
+}
+
+void cmdExit(const std::vector<std::string>& args) {
+    std::cout << "До свидания!\n";
+    std::exit(0);
+}
+
+int main() {
+    // Настройка для корректного вывода
+    std::setlocale(LC_ALL, "Russian");
+
+    std::cout << "Консольное приложение заведено. Введите 'help' для справки.\n";
+
+    std::string inputLine;
+    while (true) {
+        std::cout << "app> ";
+        
+        if (!std::getline(std::cin, inputLine)) {
+            break; 
+        }
+
+        if (inputLine.empty()) {
+            continue;
+        }
+
+        std::stringstream ss(inputLine);
+        std::string command;
+        ss >> command;
+
+        std::vector<std::string> args;
+        std::string arg;
+        while (ss >> arg) {
+            args.push_back(arg);
+        }
+
+        auto it = COMMANDS.find(command);
+        if (it != COMMANDS.end()) {
+            it->second(args);
+        } else {
+            std::cout << "Неизвестная команда: '" << command << "'. Введите 'help'.\n";
+        }
+    }
+
+    return 0;
+}
